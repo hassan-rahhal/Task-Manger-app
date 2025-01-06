@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDoList</title>
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .cont {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+        width: 300px;
+      }
+      h1 {
+        align-self: center;
+        color: orange;
+        font-size: 25px;
+        margin-bottom: 10px;
+      }
+      .add {
+        background-color: orange;
+        color: white;
+        width: 100%;
+        border: none;
+        border-radius: 5px;
+        height: 35px;
+        font-size: 16px;
+        margin-top: 30px;
+        cursor: pointer;
+      }
+      .model-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: grid;
+        place-items: center;
+        transition: var(--transition);
+        visibility: hidden;
+        z-index: -10;
+      }
+      .model-overlay.opened {
+        visibility: visible;
+        z-index: 10;
+      }
+      .model-cont {
+        background-color: white;
+        box-shadow: 0px 50px 100px 0px rgba(64, 1, 4, 0.1),
+          0px -6px 0px 0px rgba(248, 99, 107, 0.004);
+        width: 450px;
+        padding: 30px;
+        border-radius: 5px;
+      }
+      .header {
+        display: flex;
+        justify-content: center;
+        position: relative;
+      }
+      svg {
+        position: absolute;
+        cursor: pointer;
+        right: 0;
+      }
+      form input,
+      form textarea,
+      form select {
+        display: block;
+        width: 100%;
+        margin-bottom: 20px;
+        margin-top: 3px;
+        padding: 10px;
+        border-radius: 5px;
+        outline: none;
+        border: 1px solid lightgray;
+        color: rgba(0, 0, 0, 0.8);
+      }
+      .close {
+        background-color: orange;
+        color: white;
+        width: 100%;
+        border: none;
+        border-radius: 5px;
+        height: 35px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      form textarea {
+        resize: vertical;
+        height: 80px;
+      }
+      label {
+        font-size: 17px;
+      }
+      form select {
+        background-color: rgba(211, 211, 211, 0.314);
+        border: none;
+      }
+      .tasks {
+        background-color: lightgray;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        padding: 10px;
+      }
+      .tasks p:first-child {
+        font-weight: 700;
+      }
+      .tasks button {
+        color: white;
+        background-color: red;
+        border: none;
+        padding: 5px 7px;
+        border-radius: 2px;
+        margin-top: 5px;
+        position: relative;
+        left: 80%;
+        cursor: pointer;
+      }
+      @media screen and (max-width: 1140px) {
+        body {
+          flex-direction: column;
+          row-gap: 30px;
+        }
+        .cont {
+          width: 550px;
+        }
+      }
+      @media screen and (max-width: 560px) {
+        .cont {
+          width: 370px;
+        }
+        .model-cont {
+          width: 350px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cont">
+      <h1>TO DO</h1>
+      <div class="dropped to-do"></div>
+      <button data-target="to-do" class="add">+ Add task</button>
+    </div>
+    <div class="cont">
+      <h1>IN PROGRESS</h1>
+      <div class="progress dropped"></div>
+      <button data-target="progress" class="add">+ Add task</button>
+    </div>
+    <div class="cont">
+      <h1>COMPLETED</h1>
+      <div class="complete dropped"></div>
+      <button data-target="complete" class="add">+ Add task</button>
+    </div>
+    <div class="model-overlay">
+      <div class="model-cont">
+        <div class="header">
+          <h1>Add Task</h1>
+          <svg
+            class="close-svg"
+            xmlns="http://www.w3.org/2000/svg"
+            height="20px"
+            viewBox="0 -960 960 960"
+            width="20px"
+            fill="#00000"
+          >
+            <path
+              d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+            />
+          </svg>
+        </div>
+        <form>
+          <label for="name">Task Name:</label>
+          <input type="text" required id="name" />
+          <label for="date">Due Date:</label>
+          <input type="date" required id="date" />
+          <label for="details">Details:</label>
+          <textarea id="details" required></textarea>
+          <label for="priority">Priority:</label>
+          <select id="priority">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <button type="submit" class="close">Add Task</button>
+        </form>
+      </div>
+    </div>
+  </body>
+  <script>
+    const addBtn = document.querySelectorAll(".add");
+    const model = document.querySelector(".model-overlay");
+    const closeSvg = document.querySelector(".close-svg");
+    const closeBtn = document.querySelector(".close");
+    const name = document.getElementById("name");
+    const date = document.getElementById("date");
+    const details = document.getElementById("details");
+    const toDo = document.querySelector(".to-do");
+    const complete = document.querySelector(".complete");
+    const progress = document.querySelector(".progress");
+    const select = document.getElementById("priority");
+    const containers = document.querySelectorAll(".cont");
+
+    let task;
+    let maxHeight;
+    addBtn.forEach((btn) =>
+      btn.addEventListener("click", (e) => {
+        model.classList.add("opened");
+        task = e.target.dataset.target;
+      })
+    );
+    closeSvg.addEventListener("click", () => {
+      model.classList.remove("opened");
+    });
+    closeBtn.addEventListener("click", (e) => {
+      if (details.value && date.value && name.value) {
+        if (task === "to-do") {
+          if (select.value === "High") {
+            toDo.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid red;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          } else if (select.value === "Low") {
+            toDo.innerHTML += `
+                <div draggable="true"  style="border-left: 5px solid green;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          } else if (select.value === "Medium") {
+            toDo.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid orange ;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          }
+        } else if (task === "progress") {
+          if (select.value === "High") {
+            progress.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid red;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          } else if (select.value === "Low") {
+            progress.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid green;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          } else if (select.value === "Medium") {
+            progress.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid orange ;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          }
+        } else if (task === "complete") {
+          if (select.value === "High") {
+            complete.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid red;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          } else if (select.value === "Low") {
+            complete.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid green;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          } else if (select.value === "Medium") {
+            complete.innerHTML += `
+                <div draggable="true" style="border-left: 5px solid orange ;" class="tasks">
+                    <p class="task-name">${name.value}</p>
+                    <p class="task-date">${date.value}</p>
+                    <p class="task-details">${details.value}</p>
+                    <button class="task-btn">Delete</button>
+                </div>`;
+          }
+        }
+        name.value = "";
+        date.value = "";
+        details.value = "";
+        select.value = "Low";
+        model.classList.remove("opened");
+        recize();
+      }
+    });
+    containers.forEach((cont) =>
+      cont.addEventListener("click", (e) => {
+        if (e.target.classList.contains("task-btn")) {
+          e.target.parentElement.remove();
+          recize();
+        }
+      })
+    );
+    let dragged;
+    containers.forEach((cont) =>
+      cont.addEventListener("dragstart", (e) => {
+        if (e.target.classList.contains("tasks")) {
+          dragged = e.target;
+          console.log("Sd");
+        }
+      })
+    );
+
+    containers.forEach((cont) => {
+      cont.addEventListener("drop", (e) => {
+        e.preventDefault();
+        console.log(cont);
+        cont.children[1].appendChild(dragged);
+        recize();
+      });
+
+      cont.addEventListener("dragover", (e) => e.preventDefault());
+    });
+    function recize() {
+      let maxHeight = 0;
+      containers.forEach((el) => {
+        el.style.height = "auto";
+      });
+      containers.forEach((el) => {
+        const height = el.offsetHeight;
+        if (height > maxHeight) {
+          maxHeight = height;
+        }
+      });
+      containers.forEach((el) => {
+        el.style.height = maxHeight + "px";
+      });
+    }
+  </script>
+</html>
