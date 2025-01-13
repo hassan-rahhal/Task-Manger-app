@@ -1,4 +1,4 @@
-The Task Manager Application is a efficient tool designed to help users organize, prioritize, and manage their tasks with ease. Developed using HTML, CSS, and JavaScript, the application delivers a user-friendly interface paired with robust functionality to optimize productivity.
+The Task Manager Application is an efficient tool designed to help users organize, prioritize, and manage their tasks with ease. Developed using HTML, CSS, and JavaScript, the application delivers a user-friendly interface paired with robust functionality to optimize productivity.
 
 Key Features:
 Drag-and-Drop Functionality: Easily rearrange tasks across different categories for better organization.
